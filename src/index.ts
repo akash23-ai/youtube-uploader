@@ -47,6 +47,7 @@ app.get("/google/:code", (req, res) => {
         oAuth2Client.generateAuthUrl();
     }
 })
+// need to add the code to get the token from the code
 
 app.listen(3000, () => {
     console.log(`Listening at Port : 3000`)
