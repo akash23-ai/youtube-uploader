@@ -1,59 +1,185 @@
+import fs from "fs"
+import readline from "readline";
+import assert from "assert"
+import {google} from "googleapis"
 import express from "express"
-import { google } from "googleapis"
+import path from "path"
+const OAuth2 = google.auth.OAuth2;
 
-import OAuthData from "../secret/crediential.json"
+// video category IDs for YouTube:
+const categoryIds = {
+  Entertainment: 24,
+  Education: 27,
+  ScienceTechnology: 28
+}
 
-const title = "My Title"
-const description = "This is my video"
-const Tag = ["MyVideo"]
+// If modifying these scopes, delete your previously saved credentials in client_oauth_token.json
+const SCOPES = ['https://www.googleapis.com/auth/youtube.upload'];
+const TOKEN_PATH = '../' + 'client_oauth_token.json';
 
-
-const CLIENT_ID = OAuthData.web.client_id
-const CLIENT_SECRET = OAuthData.web.client_secret
-const REDIRECT_URL = OAuthData.web.redirect_uris[0]
-
-console.log(REDIRECT_URL)
-
-
-const SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
-const oAuth2Client = new google.auth.OAuth2(
-    CLIENT_ID,
-    CLIENT_SECRET,
-    REDIRECT_URL
-)
-
+const videoFilePath = '../video.mp4'
+const thumbFilePath = '../thumb.jpg'
 const app = express();
 
-let auth = false;
+
+
+app.use(express.json());
+
 
 app.get("/", (req, res) => {
-    if(!auth) {
-        const url : string = oAuth2Client.generateAuthUrl(
-           {
-            access_type : "offline",
-            scope : SCOPES
-           }
-        )
+    const uploadTheVideo = (title:any, description:any, tags:any) => {
+      
+        console.log(__dirname)
+        // Load client secrets from a local file.
+        fs.readFile(path.resolve(__dirname, '../secret/client_secret.json'), function processClientSecrets(err, content:any) {
+          if (err) {
+            console.log('Error loading client secret file: ' + err);
+            return;
+          };
 
-        res.json({url})
-    }
+          console.log("I am In fs readfile")
+          // Authorize a client with the loaded credentials, then call the YouTube API.
+          authorize(JSON.parse(content), (auth:any) => uploadVideo(auth, title, description, tags));
+        });
+      }
+      
+      /**
+       * Upload the video file.
+       *
+       * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
+       */
+      function uploadVideo(auth:any, title:any, description:any, tags:any) {
+        const service = google.youtube('v3')
+      
+        //@ts-ignore
+        const res = service.videos.insert({
+          auth: auth,
+          part: 'snippet,status',
+          requestBody: {
+            snippet: {
+              title,
+              description,
+              tags,
+              categoryId: categoryIds.ScienceTechnology,
+              defaultLanguage: 'en',
+              defaultAudioLanguage: 'en'
+            },
+            status: {
+              privacyStatus: "private"
+            },
+          },
+          media: {
+            body: fs.createReadStream(videoFilePath),
+          },
+        }, function(err:any, response:any) {
+          if (err) {
+            console.log('The API returned an error: ' + err);
+            return;
+          }
+          console.log(response.data)
+      
+          console.log('Video uploaded. Uploading the thumbnail now.')
+          service.thumbnails.set({
+            auth: auth,
+            videoId: response.data.id,
+            media: {
+              body: fs.createReadStream(thumbFilePath)
+            },
+          }, function(err:any, response:any) {
+            if (err) {
+              console.log('The API returned an error: ' + err);
+              return;
+            }
+            console.log(response.data)
+          })
+        });
+      }
+
+      function authorize(credentials:any, callback:any) {
+        console.log(credentials)
+        const clientSecret = credentials.web.client_secret;
+        const clientId = credentials.web.client_id;
+        const redirectUrl = credentials.web.redirect_uris[0];
+        const oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
+      
+        // Check if we have previously stored a token.
+        console.log(TOKEN_PATH)
+        fs.readFile(TOKEN_PATH, function(err, token:any) {
+          if (err) {
+            getNewToken(oauth2Client, callback);
+          } else {
+            oauth2Client.credentials = JSON.parse(token);
+            callback(oauth2Client);
+          }
+        });
+      }
+      
+      /**
+       * Get and store new token after prompting for user authorization, and then
+       * execute the given callback with the authorized OAuth2 client.
+       *
+       * @param {google.auth.OAuth2} oauth2Client The OAuth2 client to get token for.
+       * @param {getEventsCallback} callback The callback to call with the authorized
+       *     client.
+       */
+      function getNewToken(oauth2Client:any, callback:any) {
+        const authUrl = oauth2Client.generateAuthUrl({
+          access_type: 'offline',
+          scope: SCOPES
+        });
+        console.log('Authorize this app by visiting this url: ', authUrl);
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
+        rl.question('Enter the code from that page here: ', function(code) {
+          rl.close();
+          oauth2Client.getToken(code, function(err:any, token:any) {
+            if (err) {
+              console.log('Error while trying to retrieve access token', err);
+              return;
+            }
+            oauth2Client.credentials = token;
+            storeToken(token);
+            callback(oauth2Client);
+          });
+        });
+      }
+      
+      /**
+       * Store token to disk be used in later program executions.
+       *
+       * @param {Object} token The token to store to disk.
+       */
+      function storeToken(token:any) {
+        fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+          if (err) throw err;
+          console.log('Token stored to ' + TOKEN_PATH);
+        });
+      };
+
+      const value = uploadTheVideo("My First Video", "This is My First Video", "First Video");
+
+      console.log(value);
+
+      res.json({message : "Hi there"})
+      
+      
+});
+
+
+app.get("/google", (req, res) => {
+
+    const body = req.headers
+
+    console.log(body)
+
+    const {code , scope} = req.query
+//@ts-ignore
+    console.log(req)
 })
 
-
-app.get("/google/:code", (req, res) => {
-    const {code} = req.params;
-
-    if(code){
-        oAuth2Client.generateAuthUrl();
-    }
-})
-// need to add the code to get the token from the code
 
 app.listen(3000, () => {
-    console.log(`Listening at Port : 3000`)
+    console.log("Server running on 3000")
 })
-
-
-
-
-
