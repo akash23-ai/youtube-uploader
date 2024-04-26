@@ -42,12 +42,7 @@ app.get("/", (req, res) => {
           authorize(JSON.parse(content), (auth:any) => uploadVideo(auth, title, description, tags));
         });
       }
-      
-      /**
-       * Upload the video file.
-       *
-       * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
-       */
+
       function uploadVideo(auth:any, title:any, description:any, tags:any) {
         const service = google.youtube('v3')
       
@@ -114,14 +109,6 @@ app.get("/", (req, res) => {
         });
       }
       
-      /**
-       * Get and store new token after prompting for user authorization, and then
-       * execute the given callback with the authorized OAuth2 client.
-       *
-       * @param {google.auth.OAuth2} oauth2Client The OAuth2 client to get token for.
-       * @param {getEventsCallback} callback The callback to call with the authorized
-       *     client.
-       */
       function getNewToken(oauth2Client:any, callback:any) {
         const authUrl = oauth2Client.generateAuthUrl({
           access_type: 'offline',
@@ -145,12 +132,7 @@ app.get("/", (req, res) => {
           });
         });
       }
-      
-      /**
-       * Store token to disk be used in later program executions.
-       *
-       * @param {Object} token The token to store to disk.
-       */
+ 
       function storeToken(token:any) {
         fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
           if (err) throw err;
@@ -175,8 +157,14 @@ app.get("/google", (req, res) => {
     console.log(body)
 
     const {code , scope} = req.query
-//@ts-ignore
-    console.log(req)
+
+    const {token} = req.query
+
+    console.log(token)
+
+    console.log(code, scope)
+// //@ts-ignore
+//     console.log(req)
 })
 
 
