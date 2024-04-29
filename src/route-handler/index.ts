@@ -1,8 +1,10 @@
 import express from "express"
-import { handleRoute } from "../controller";
+import { firstRoute, handleRoute } from "../controller";
 
 const router = express.Router();
 
-router.route("/").get(handleRoute)
+router.route("/").get(firstRoute);
+
+
 
 router.route("/google").get(handleRoute)
