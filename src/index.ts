@@ -17,13 +17,54 @@ const categoryIds = {
 const SCOPES = ['https://www.googleapis.com/auth/youtube.upload'];
 const TOKEN_PATH = '../' + 'client_oauth_token.json';
 
-const videoFilePath = '../video.mp4'
-const thumbFilePath = '../thumb.jpg'
+const videoFilePath = path.resolve(__dirname, 'video.mp4') 
+const thumbFilePath = path.resolve(__dirname, 'thumb.jpg')
 const app = express();
 
+console.log(__dirname)
+
+console.log(videoFilePath)
+console.log(thumbFilePath)
 
 
 app.use(express.json());
+
+
+function getNewToken(oauth2Client:any, callback:any) {
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: SCOPES
+  });
+  console.log('Authorize this app by visiting this url: ', authUrl);
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  rl.question('Enter the code from that page here: ', function(code) {
+    rl.close();
+    oauth2Client.getToken(code, function(err:any, token:any) {
+      if (err) {
+        console.log('Error while trying to retrieve access token', err);
+        return;
+      }
+      oauth2Client.credentials = token;
+      storeToken(token);
+      callback(oauth2Client);
+    });
+  });
+}
+
+
+
+function storeToken(token:any) {
+  fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+    if (err) throw err;
+    console.log("Token Is Stored")
+    console.log('Token stored to ' + TOKEN_PATH);
+  });
+};
+
+
 
 
 app.get("/", (req, res) => {
@@ -101,6 +142,7 @@ app.get("/", (req, res) => {
         console.log(TOKEN_PATH)
         fs.readFile(TOKEN_PATH, function(err, token:any) {
           if (err) {
+            console.log("In fs ReadFile")
             getNewToken(oauth2Client, callback);
           } else {
             oauth2Client.credentials = JSON.parse(token);
@@ -109,37 +151,7 @@ app.get("/", (req, res) => {
         });
       }
       
-      function getNewToken(oauth2Client:any, callback:any) {
-        const authUrl = oauth2Client.generateAuthUrl({
-          access_type: 'offline',
-          scope: SCOPES
-        });
-        console.log('Authorize this app by visiting this url: ', authUrl);
-        const rl = readline.createInterface({
-          input: process.stdin,
-          output: process.stdout
-        });
-        rl.question('Enter the code from that page here: ', function(code) {
-          rl.close();
-          oauth2Client.getToken(code, function(err:any, token:any) {
-            if (err) {
-              console.log('Error while trying to retrieve access token', err);
-              return;
-            }
-            oauth2Client.credentials = token;
-            storeToken(token);
-            callback(oauth2Client);
-          });
-        });
-      }
- 
-      function storeToken(token:any) {
-        fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-          if (err) throw err;
-          console.log('Token stored to ' + TOKEN_PATH);
-        });
-      };
-
+     
       const value = uploadTheVideo("My First Video", "This is My First Video", "First Video");
 
       console.log(value);
@@ -151,9 +163,7 @@ app.get("/", (req, res) => {
 
 
 app.get("/google", (req, res) => {
-
     const body = req.headers
-
     console.log(body)
 
     const {code , scope} = req.query
@@ -163,6 +173,8 @@ app.get("/google", (req, res) => {
     console.log(token)
 
     console.log(code, scope)
+
+    res.json({code : code})
 // //@ts-ignore
 //     console.log(req)
 })
