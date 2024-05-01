@@ -7,12 +7,14 @@ import { videoFilePath, thumbFilePath } from "../store"
 
 // This file contain all the youtube functional code
 
-// video category IDs for YouTube:
+// Video category IDs for YouTube:
 const categoryIds = {
     Entertainment: 24,
     Education: 27,
     ScienceTechnology: 28
   }
+
+ const SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
 
 export const uploadTheVideo = (title:string, description:string, tags:string[] | string) => {
     console.log(__dirname)
@@ -34,7 +36,7 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
     console.log(process.env.SCOPES)
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: process.env.SCOPES
+      scope: SCOPES
     });
     console.log('Authorize this app by visiting this url: ', authUrl);  
     const rl = readline.createInterface({
