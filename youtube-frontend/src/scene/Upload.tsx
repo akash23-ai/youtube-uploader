@@ -10,8 +10,8 @@ function Upload() {
     const [tags, setTags] = useState();
 
   return (
-    <div className="w-full min-h-screen h-full bg-gradient-to-b from-[#2925CC] to-[#4B48E5]">
-      <div className="flex justify-center text-white font-bold text-4xl mb-8 mt-4">Upload The Video , Title and Description</div>
+    <div className="w-full min-h-screen h-full bg-[#E0F8F2]">
+      <div className="flex justify-center text-white font-bold text-4xl mb-8 mt-4">Upload The <span className="text-[#009387]">Video , Title and Description</span></div>
       <div className="flex flex-col justify-center items-center h-full">
         <div className="grid w-full max-w-sm items-center gap-1.5">
           <Label htmlFor="videos" className="font-bold mb-4 text-white">
