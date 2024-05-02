@@ -3,6 +3,8 @@ import dotenv from "dotenv"
 import { uploadInput } from "./zod";
 import { uploadTheVideo } from "./controller/youtube-controller";
 import { videoFilePath, thumbFilePath } from "./store";
+import cors from "cors"
+import { upload } from "./middleware/upload";
 
 
 const app = express();
@@ -14,11 +16,15 @@ console.log(thumbFilePath)
 
 app.use(express.json());
 dotenv.config()
+app.use(cors({
+  origin: "*"
+}))
 
-
-app.post("/", (req, res) => {
+//@ts-ignore
+app.post("/", upload.single("video"),  (req, res) => {
     const body = req.body;
     console.log(body)
+    console.log(req.file)
     const success = uploadInput.safeParse(body);
 
     if(!success.success){
