@@ -21,17 +21,30 @@ app.use(cors({
 }))
 
 //@ts-ignore
-app.post("/", upload.single("video"),  (req, res) => {
+app.post("/", upload.fields([
+  {
+    name: "video",
+    maxCount : 1
+  },
+  {
+    name : "thumbnail",
+    maxCount : 1
+  }
+]),  (req, res) => {
     const body = req.body;
     console.log(body)
-    console.log(req.file)
+    //@ts-ignore
+    const videoFilePath = req.files?.video[0].path;
+    //@ts-ignore
+    const thumbFilePath = req.files?.thumbnail[0].path;
+    console.log(videoFilePath, thumbFilePath)
     const success = uploadInput.safeParse(body);
 
     if(!success.success){
       return res.status(401).json({message : "Inputs are Invalid"})
     }
     try {
-      const value = uploadTheVideo("My First Video", "This is My First Video", "First Video");
+      const value = uploadTheVideo(body.title, body.description, "First Video", videoFilePath, thumbFilePath);
       console.log(value);
     res.status(200).json({value, message : "Upload SucessFull"})   
     } catch (error) {

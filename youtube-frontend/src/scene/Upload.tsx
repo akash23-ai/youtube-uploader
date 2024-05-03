@@ -6,6 +6,7 @@ import axios from "axios"
 
 function Upload() {
     const [video, setVideo] = useState<File>();
+    const [thumbnail, setThumbnail] = useState<File>();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [tags, setTags] = useState<string[]>();
@@ -19,8 +20,10 @@ function Upload() {
         formData.set("description", description)
         //@ts-ignore
         formData.set("tags", tags)
+        //@ts-ignore
+        formData.set("thumbnail", thumbnail)
 
-        console.log(tags, video)
+        console.log(video, "Thumbnail ", thumbnail)
         
 
         try {
@@ -34,7 +37,7 @@ function Upload() {
 
   return (
     <div className="w-full min-h-screen h-full bg-[#E0F8F2]">
-      <div className="flex justify-center text-[#2E2F35] font-bold text-4xl mb-8 pt-16">Upload The  <span className="text-[#009387]">Video , Title and Description</span></div>
+      <div className="flex justify-center text-[#2E2F35] font-bold text-4xl mb-8 pt-16">Upload The  <span className="text-[#009387]"> Video, Thumbnail, Title and Description</span></div>
       <div className="flex flex-col justify-center items-center h-full">
         <div className="grid w-full max-w-sm items-center gap-1.5">
           <Label htmlFor="videos" className="font-bold mb-2 text-[#58595D]">
@@ -45,6 +48,13 @@ function Upload() {
             setVideo(e.target?.files[0])} />
 {/* 
           <input type="file" className="file:border-2 file:py-2 file:px-4 file:rounded-md file:bg-[#009387] file:font-semibold file:text-white file:transition mb-4" id="videos" onChange={(e:React.ChangeEvent<HTMLInputElement>) => console.log(e.target?.files[0] || "")} /> */}
+          <Label htmlFor="thumbnail" className="font-bold mb-2 text-[#58595D]">
+            Thumbnail
+          </Label>
+          <Input id="thumbnail" className="py-2 px-4 mb-4" type="file" onChange={(e:React.ChangeEvent<HTMLInputElement>) =>
+            //@ts-ignore
+            setThumbnail(e.target?.files[0])} />
+
 
           <Label htmlFor="title" className="font-bold mb-4 text-[#58595D]">
             Title

@@ -16,7 +16,7 @@ const categoryIds = {
 
  const SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
 
-export const uploadTheVideo = (title:string, description:string, tags:string[] | string) => {
+export const uploadTheVideo = (title:string, description:string, tags:string[] | string, videoFilePath : string, thumbFilePath : string) => {
     console.log(__dirname)
     // Load client secrets from a local file.
     fs.readFile(path.resolve(__dirname, '../../secret/client_secret.json'), function processClientSecrets(err, content:Buffer) {
@@ -26,7 +26,7 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
       };
       console.log("I am In fs readfile")
       // Authorize a client with the loaded credentials, then call the YouTube API
-      authorize(JSON.parse(content.toString()), (auth:any) => uploadVideo(auth, title, description, tags));
+      authorize(JSON.parse(content.toString()), (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath));
     });
   }
 
@@ -59,7 +59,7 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
   
   
   
-    function storeToken(token:any) {
+   function storeToken(token:any) {
     fs.writeFile(process.env.TOKEN_PATH || "", JSON.stringify(token), (err) => {
       if (err) throw err;
       console.log("Token Is Stored")
@@ -68,7 +68,7 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
   };
 
 
-  export function uploadVideo(auth:any, title:any, description:any, tags:any) {
+  export function uploadVideo(auth:any, title:any, description:any, tags:any, videoFilePath: string, thumbFilePath : string) {
     const service = google.youtube('v3')
     //@ts-ignore
     const res = service.videos.insert({
