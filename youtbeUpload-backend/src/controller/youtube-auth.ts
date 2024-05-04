@@ -6,6 +6,7 @@ import { getNewToken } from "./youtube-controller";
 
 export function authorize(credentials:any, callback:any) {
     console.log(credentials)
+    console.log(credentials.web)
     const clientSecret = credentials.web.client_secret;
     const clientId = credentials.web.client_id;
     const redirectUrl = credentials.web.redirect_uris[0];

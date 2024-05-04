@@ -25,11 +25,11 @@ const categoryIds = {
     });
     console.log("Data is ",data);
 
-    callback(data)
+    callback(JSON.parse(data))
  }
 
 export const uploadTheVideo = (title:string, description:string, tags:string[] | string, videoFilePath : string, thumbFilePath : string) => {
-    console.log(__dirname)
+    console.log("Dir is ",__dirname)
 
     readAuthFile(path.resolve(__dirname, '../../secret/client_secret.json'), (data: any) => {
       authorize(data, (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath))
@@ -48,15 +48,9 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
 
 
   export function getNewToken(oauth2Client:any, callback:any, token? : any) {
-
-    if(token){
-      oauth2Client.credentials = token;
-      storeToken(token)
-      return callback(oauth2Client);
-    }
     console.log(process.env.SCOPES)
     const authUrl = oauth2Client.generateAuthUrl({
-      access_type: 'online',
+      access_type: 'offline',
       scope: SCOPES
     });
     console.log('Authorize this app by visiting this url: ', authUrl);  
@@ -80,7 +74,7 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
   
   
   
-   function storeToken(token:any) {
+  export function storeToken(token:any) {
     fs.writeFile(process.env.TOKEN_PATH || "", JSON.stringify(token), (err) => {
       if (err) throw err;
       console.log("Token Is Stored")
@@ -91,6 +85,7 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
 
   export function uploadVideo(auth:any, title:any, description:any, tags:any, videoFilePath: string, thumbFilePath : string) {
     const service = google.youtube('v3')
+    console.log("I am in upload video")
     //@ts-ignore
     const res = service.videos.insert({
       auth: auth,

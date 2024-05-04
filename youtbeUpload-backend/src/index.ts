@@ -60,6 +60,10 @@ app.post("/", upload.fields([
 
 app.get("/google", (req, res) => {
     const {code , scope} = req.query
+
+    if(!code || !scope){
+      return res.status(401).json({message : "Invalid Request"})
+    }
     console.log(code, scope)
     res.status(200).json({code : code})
 })
