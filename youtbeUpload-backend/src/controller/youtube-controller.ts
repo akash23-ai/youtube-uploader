@@ -16,26 +16,47 @@ const categoryIds = {
 
  const SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
 
+
+
+ export const readAuthFile = (path:any, callback?:any) => {
+  console.log(path)
+    const data = fs.readFileSync(path, {
+      encoding : "utf8"
+    });
+    console.log("Data is ",data);
+
+    callback(data)
+ }
+
 export const uploadTheVideo = (title:string, description:string, tags:string[] | string, videoFilePath : string, thumbFilePath : string) => {
     console.log(__dirname)
+
+    readAuthFile(path.resolve(__dirname, '../../secret/client_secret.json'), (data: any) => {
+      authorize(data, (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath))
+    })
     // Load client secrets from a local file.
-    fs.readFile(path.resolve(__dirname, '../../secret/client_secret.json'), function processClientSecrets(err, content:Buffer) {
-      if (err) {
-        console.log('Error loading client secret file: ' + err);
-        return;
-      };
-      console.log("I am In fs readfile")
-      // Authorize a client with the loaded credentials, then call the YouTube API
-      authorize(JSON.parse(content.toString()), (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath));
-    });
+    // fs.readFile(path.resolve(__dirname, '../../secret/client_secret.json'), function processClientSecrets(err, content:Buffer) {
+    //   if (err) {
+    //     console.log('Error loading client secret file: ' + err);
+    //     return;
+    //   };
+    //   console.log("I am In fs readfile")
+    //   // Authorize a client with the loaded credentials, then call the YouTube API
+    //   authorize(JSON.parse(content.toString()), (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath));
+    // });
   }
 
 
+  export function getNewToken(oauth2Client:any, callback:any, token? : any) {
 
-  export function getNewToken(oauth2Client:any, callback:any) {
+    if(token){
+      oauth2Client.credentials = token;
+      storeToken(token)
+      return callback(oauth2Client);
+    }
     console.log(process.env.SCOPES)
     const authUrl = oauth2Client.generateAuthUrl({
-      access_type: 'offline',
+      access_type: 'online',
       scope: SCOPES
     });
     console.log('Authorize this app by visiting this url: ', authUrl);  

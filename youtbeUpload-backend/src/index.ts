@@ -40,9 +40,11 @@ app.post("/", upload.fields([
     console.log(videoFilePath, thumbFilePath)
     const success = uploadInput.safeParse(body);
 
-    if(!success.success){
-      return res.status(401).json({message : "Inputs are Invalid"})
-    }
+    console.log(success.success)
+
+    // if(!success.success){
+    //   return res.status(401).json({message : "Inputs are Invalid"})
+    // }
     try {
       const value = uploadTheVideo(body.title, body.description, "First Video", videoFilePath, thumbFilePath);
       console.log(value);
