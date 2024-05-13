@@ -4,6 +4,7 @@ import readline from "readline"
 import {google} from "googleapis"
 import { authorize } from "./youtube-auth"
 import { videoFilePath, thumbFilePath } from "../store"
+const OAuth2 = google.auth.OAuth2;
 
 // This file contain all the youtube functional code
 
@@ -18,22 +19,34 @@ const categoryIds = {
 
 
 
- export const readAuthFile = (path:any, callback?:any) => {
+ export const readAuthFile = (path:any) => {
   console.log(path)
     const data = fs.readFileSync(path, {
       encoding : "utf8"
     });
     console.log("Data is ",data);
 
-    callback(JSON.parse(data))
+    const credentials = JSON.parse(data);
+    return credentials;
  }
 
 export const uploadTheVideo = (title:string, description:string, tags:string[] | string, videoFilePath : string, thumbFilePath : string) => {
     console.log("Dir is ",__dirname)
 
-    readAuthFile(path.resolve(__dirname, '../../secret/client_secret.json'), (data: any) => {
-      authorize(data, (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath))
-    })
+    const credentials = readAuthFile(path.resolve(__dirname, '../../secret/client_secret.json'));
+
+    const clientSecret = credentials.web.client_secret;
+    const clientId = credentials.web.client_id;
+    const redirectUrl = credentials.web.redirect_uris[0];
+    const oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
+
+    authorize(oauth2Client, (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath))
+
+    
+
+    // readAuthFile(path.resolve(__dirname, '../../secret/client_secret.json'), (data: any) => {
+    //   authorize(data, (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath))
+    // })
     // Load client secrets from a local file.
     // fs.readFile(path.resolve(__dirname, '../../secret/client_secret.json'), function processClientSecrets(err, content:Buffer) {
     //   if (err) {
@@ -47,8 +60,7 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
   }
 
 
-  export function getNewToken(oauth2Client:any, callback:any, token? : any) {
-    console.log(process.env.SCOPES)
+  export function getNewToken(oauth2Client:any, callback:any) {
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: SCOPES

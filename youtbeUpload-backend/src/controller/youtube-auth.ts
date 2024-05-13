@@ -4,13 +4,13 @@ import fs from "fs"
 const OAuth2 = google.auth.OAuth2;
 import { getNewToken } from "./youtube-controller";
 
-export function authorize(credentials:any, callback:any) {
-    console.log(credentials)
-    console.log(credentials.web)
-    const clientSecret = credentials.web.client_secret;
-    const clientId = credentials.web.client_id;
-    const redirectUrl = credentials.web.redirect_uris[0];
-    const oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
+export function authorize(oauth2Client:any, callback:any) {
+    // console.log(credentials)
+    // console.log(credentials.web)
+    // const clientSecret = credentials.web.client_secret;
+    // const clientId = credentials.web.client_id;
+    // const redirectUrl = credentials.web.redirect_uris[0];
+    // const oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
   
     // Check if we have previously stored a token.
     console.log(process.env.TOKEN_PATH)
