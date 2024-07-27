@@ -1,13 +1,13 @@
 import express from "express"
 import dotenv from "dotenv"
 import { uploadInput } from "./zod";
-import { uploadTheVideo } from "./controller/youtube-controller";
+import { clientToken, uploadTheVideo } from "./controller/youtube-controller";
 import { videoFilePath, thumbFilePath } from "./store";
 import cors from "cors"
 import { upload } from "./middleware/upload";
 
 
-const app = express();
+export const app = express();
 
 
 console.log(videoFilePath)
@@ -48,7 +48,7 @@ app.post("/", upload.fields([
     try {
       const value = uploadTheVideo(body.title, body.description, "First Video", videoFilePath, thumbFilePath);
       console.log(value);
-    res.status(200).json({value, message : "Upload SucessFull"})   
+      res.status(200).json({value, message : "Upload SucessFull"})   
     } catch (error) {
       console.log(error);
       //@ts-ignore
@@ -64,8 +64,7 @@ app.get("/google", (req, res) => {
     if(!code || !scope){
       return res.status(401).json({message : "Invalid Request"})
     }
-    console.log(code, scope)
-    res.status(200).json({code : code})
+    console.log(code, scope);
 })
 
 

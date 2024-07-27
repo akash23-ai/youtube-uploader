@@ -30,8 +30,8 @@ const categoryIds = {
     return credentials;
  }
 
-export const uploadTheVideo = (title:string, description:string, tags:string[] | string, videoFilePath : string, thumbFilePath : string) => {
-    console.log("Dir is ",__dirname)
+export const uploadTheVideo = async (title:string, description:string, tags:string[] | string, videoFilePath : string, thumbFilePath : string) => {
+    console.log("Dir is ",__dirname);
 
     const credentials = readAuthFile(path.resolve(__dirname, '../../secret/client_secret.json'));
 
@@ -40,7 +40,23 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
     const redirectUrl = credentials.web.redirect_uris[0];
     const oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
 
-    authorize(oauth2Client, (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath))
+    // Check if we have previously stored a token.
+    const tokenData = await fs.readFileSync(process.env.TOKEN_PATH || "", {
+      encoding : "utf8"
+    });
+
+    const token = JSON.parse(tokenData);
+    console.log("Token is ",token); 
+
+    if(!token){
+     const res = getNewToken(oauth2Client, (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath));
+     return res;
+    }
+    oauth2Client.credentials = token;
+
+    const response = uploadVideo(oauth2Client, title, description, tags, videoFilePath, thumbFilePath);
+    return response;
+    // authorize(oauth2Client, (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath))
 
     
 
@@ -65,7 +81,8 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
       access_type: 'offline',
       scope: SCOPES
     });
-    console.log('Authorize this app by visiting this url: ', authUrl);  
+    console.log('Authorize this app by visiting this url: ', authUrl); 
+    
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout
@@ -83,6 +100,18 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
       });
     });
   }
+
+  export function clientToken(oauth2Client:any, callback : any, code : any){
+    oauth2Client.getToken(code, (err:any, token:any) => {
+      if(err) {
+        console.error
+        return;
+      }
+      oauth2Client.credentials = token;
+      storeToken(token);
+      callback(oauth2Client);
+    })
+  }
   
   
   
@@ -96,10 +125,12 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
 
 
   export function uploadVideo(auth:any, title:any, description:any, tags:any, videoFilePath: string, thumbFilePath : string) {
-    const service = google.youtube('v3')
+
+    console.log(auth)
+    const youtube = google.youtube('v3')
     console.log("I am in upload video")
     //@ts-ignore
-    const res = service.videos.insert({
+    const res = youtube.videos.insert({
       auth: auth,
       part: 'snippet,status',
       requestBody: {
@@ -126,7 +157,7 @@ export const uploadTheVideo = (title:string, description:string, tags:string[] |
       console.log(response.data)
   
       console.log('Video uploaded. Uploading the thumbnail now.')
-      service.thumbnails.set({
+      youtube.thumbnails.set({
         auth: auth,
         videoId: response.data.id,
         media: {
