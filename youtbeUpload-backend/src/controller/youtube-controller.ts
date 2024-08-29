@@ -3,7 +3,7 @@ import path from "path"
 import readline from "readline"
 import {google} from "googleapis"
 import { authorize } from "./youtube-auth"
-import { videoFilePath, thumbFilePath } from "../store"
+
 const OAuth2 = google.auth.OAuth2;
 
 // This file contain all the youtube functional code
@@ -24,7 +24,7 @@ const categoryIds = {
     const data = fs.readFileSync(path, {
       encoding : "utf8"
     });
-    console.log("Data is ",data);
+    // console.log("Data is ",data);
 
     const credentials = JSON.parse(data);
     return credentials;
@@ -41,18 +41,21 @@ export const uploadTheVideo = async (title:string, description:string, tags:stri
     const oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
 
     // Check if we have previously stored a token.
-    const tokenData = await fs.readFileSync(process.env.TOKEN_PATH || "", {
+   try {
+    const tokenData = fs.readFileSync(process.env.TOKEN_PATH || "", {
       encoding : "utf8"
     });
 
     const token = JSON.parse(tokenData);
     console.log("Token is ",token); 
+     oauth2Client.credentials = token;
+   } catch (error) {
+      console.log("error here");
+      const res = getNewToken(oauth2Client, (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath));
+      return res;
+   }
 
-    if(!token){
-     const res = getNewToken(oauth2Client, (auth:any) => uploadVideo(auth, title, description, tags, videoFilePath, thumbFilePath));
-     return res;
-    }
-    oauth2Client.credentials = token;
+  
 
     const response = uploadVideo(oauth2Client, title, description, tags, videoFilePath, thumbFilePath);
     return response;

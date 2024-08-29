@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button"
+import { useStore } from "@/store"
 import {useNavigate} from "react-router-dom"
 
 function Home() {
     const navigate = useNavigate()
-
+    const user = useStore((state) => state.user)
   return (
     <div className="w-full min-h-screen h-full bg-[#E0F8F2]">
     <div className="grid grid-cols-2 gap-2 h-screen">
@@ -16,7 +17,13 @@ function Home() {
         </div>
 
         <div className="w-full">
-          <Button className="bg-[#FF6D2C] stroke-[#2E2F35] drop-shadow-4xl shadow-md shadow-black text-sm" onClick={() => navigate("/upload")}>Get Started</Button>
+          <Button className="bg-[#FF6D2C] stroke-[#2E2F35] drop-shadow-4xl shadow-md shadow-black text-sm" onClick={() => {
+            if(user) {
+              navigate("/upload")
+            } else {
+              navigate("/signin")
+            }
+          }}>Get Started</Button>
         </div>
       </div>
 
